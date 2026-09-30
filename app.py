@@ -38,8 +38,28 @@ st.caption("Tecnológico de Artes Débora Arango | Evaluación objetiva conforme
 
 with st.sidebar:
     st.header("⚙️ Configuración")
-    api_key = st.text_input("Clave de API de Gemini:", type="password")
-    selected_model = st.selectbox("Modelo:", ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.5-flash"])
+    api_key_input = st.text_input("Clave de API de Gemini:", type="password")
+    api_key = api_key_input.strip() if api_key_input else ""
+    
+    selected_model = None
+    if api_key:
+        try:
+            genai.configure(api_key=api_key)
+            # Detectar automáticamente los modelos soportados por tu cuenta de Google
+            available_models = [
+                m.name for m in genai.list_models() 
+                if 'generateContent' in m.supported_generation_methods
+            ]
+            if available_models:
+                selected_model = st.selectbox("Modelo detectado:", available_models)
+            else:
+                selected_model = st.selectbox("Modelo (Manual):", ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"])
+        except Exception:
+            selected_model = st.selectbox("Modelo (Manual):", ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"])
+    else:
+        st.info("🔑 Ingresa tu API Key para cargar los modelos habilitados.")
+        selected_model = st.selectbox("Modelo:", ["models/gemini-1.5-flash", "models/gemini-1.5-pro"])
+
     temperature = st.slider("Temperatura:", 0.0, 0.5, 0.0, step=0.05)
 
 uploaded_files = st.file_uploader("Sube los documentos PDF del candidato:", type=["pdf"], accept_multiple_files=True)
