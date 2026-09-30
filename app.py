@@ -2,7 +2,6 @@ import streamlit as st
 import google.generativeai as genai
 from pypdf import PdfReader
 
-# Configuración de página
 st.set_page_config(page_title="Evaluación Rectoría 2027-2031", page_icon="⚖️", layout="wide")
 
 SYSTEM_PROMPT = """
@@ -40,27 +39,8 @@ with st.sidebar:
     st.header("⚙️ Configuración")
     api_key_input = st.text_input("Clave de API de Gemini:", type="password")
     api_key = api_key_input.strip() if api_key_input else ""
-    
-    selected_model = None
-    if api_key:
-        try:
-            genai.configure(api_key=api_key)
-            # Detectar automáticamente los modelos soportados por tu cuenta de Google
-            available_models = [
-                m.name for m in genai.list_models() 
-                if 'generateContent' in m.supported_generation_methods
-            ]
-            if available_models:
-                selected_model = st.selectbox("Modelo detectado:", available_models)
-            else:
-                selected_model = st.selectbox("Modelo (Manual):", ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"])
-        except Exception:
-            selected_model = st.selectbox("Modelo (Manual):", ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-pro"])
-    else:
-        st.info("🔑 Ingresa tu API Key para cargar los modelos habilitados.")
-        selected_model = st.selectbox("Modelo:", ["models/gemini-1.5-flash", "models/gemini-1.5-pro"])
-
     temperature = st.slider("Temperatura:", 0.0, 0.5, 0.0, step=0.05)
+    st.info("🟢 Motor: Gemini 1.5 Flash (Gratuito y Estable)")
 
 uploaded_files = st.file_uploader("Sube los documentos PDF del candidato:", type=["pdf"], accept_multiple_files=True)
 extra_text = st.text_area("Texto adicional o transcriptorio (Opcional):", height=100)
@@ -77,8 +57,9 @@ if st.button("🚀 Iniciar Verificación Documental", type="primary"):
                 doc_content += f"\n\n--- TEXTO ADICIONAL ---\n{extra_text.strip()}\n"
             try:
                 genai.configure(api_key=api_key)
+                # Forzar el nombre directo de la versión estable
                 model = genai.GenerativeModel(
-                    model_name=selected_model,
+                    model_name="gemini-1.5-flash",
                     system_instruction=SYSTEM_PROMPT,
                     generation_config={"temperature": temperature}
                 )
