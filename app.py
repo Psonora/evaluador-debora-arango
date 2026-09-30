@@ -39,7 +39,7 @@ st.caption("Tecnológico de Artes Débora Arango | Evaluación objetiva conforme
 with st.sidebar:
     st.header("⚙️ Configuración")
     api_key = st.text_input("Clave de API de Gemini:", type="password")
-    selected_model = st.selectbox("Modelo:", ["gemini-1.5-flash", "gemini-1.5-pro"])
+    selected_model = st.selectbox("Modelo:", ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.5-flash"])
     temperature = st.slider("Temperatura:", 0.0, 0.5, 0.0, step=0.05)
 
 uploaded_files = st.file_uploader("Sube los documentos PDF del candidato:", type=["pdf"], accept_multiple_files=True)
