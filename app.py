@@ -5,7 +5,7 @@ from pypdf import PdfReader
 # Configuración de la página
 st.set_page_config(page_title="Evaluación Rectoría 2027-2031", page_icon="⚖️", layout="wide")
 
-# PROMPT DEL SISTEMA CON TODAS TUS CONDICIONES COMPLETAS Y DETALLADAS
+# PROMPT DEL SISTEMA COMPLETO Y NORMATIVO
 SYSTEM_PROMPT = """
 Actúa como un SISTEMA DE VERIFICACIÓN Y EVALUACIÓN DOCUMENTAL para el proceso de selección de Rectoría 2027–2031 del Tecnológico de Artes Débora Arango.
 
@@ -102,6 +102,7 @@ def extract_text_from_pdfs(uploaded_files):
 st.title("⚖️ Sistema de Verificación Documental - Rectoría 2027–2031")
 st.caption("Tecnológico de Artes Débora Arango | Evaluación objetiva conforme a norma")
 
+# Barra lateral de configuración
 with st.sidebar:
     st.header("⚙️ Configuración")
     api_key_input = st.text_input("Clave de API de Gemini:", type="password")
@@ -111,7 +112,6 @@ with st.sidebar:
     if api_key:
         try:
             genai.configure(api_key=api_key)
-            # Detectar modelos soportados en tu cuenta
             all_models = [
                 m.name for m in genai.list_models() 
                 if 'generateContent' in m.supported_generation_methods
@@ -130,9 +130,29 @@ with st.sidebar:
         st.info("🔑 Ingresa tu API Key para detectar los modelos disponibles.")
         selected_model = "models/gemini-1.5-flash-latest"
 
-    temperature = st.slider("Temperatura:", 0.0, 0.5, 0.0, step=0.05)
+# GUÍA VISUAL Y LISTADO DE DOCUMENTOS EN EL ENTORNO PRINCIPAL
+with st.expander("📌 **GUÍA DE DOCUMENTOS Y SOPORTES REQUERIDOS (HACER CLIC PARA DESPLEGAR)**", expanded=True):
+    st.markdown("""
+    Para que el sistema aplique correctamente la matriz de verificación (Acuerdo 244 de 2018), se recomienda adjuntar los siguientes documentos en formato PDF:
 
-uploaded_files = st.file_uploader("Sube los documentos PDF del candidato:", type=["pdf"], accept_multiple_files=True)
+    1. **📄 Hoja de Vida (CV) del Candidato:** Resume la trayectoria académica y profesional.
+    2. **🪪 Documento de Identidad:** Cédula de ciudadanía o soporte habilitante de nacionalidad.
+    3. **🎓 Títulos y Posgrados:**
+       - Título profesional universitario.
+       - Título de posgrado (Especialización, Maestría o Doctorado en IES reconocida o resolución de convalidación del MEN).
+    4. **📜 Certificaciones Laborales Académicas y Administrativas:**
+       - Soportes que acrediten mínimo 10 años de experiencia profesional general.
+       - Soportes que acrediten mínimo 5 años en IES (cargos de Gobernanza, Dirección, Decanaturas, Coordinaciones, etc., especificando fechas exactas de inicio/fin y funciones).
+    5. **🏛️ Soportes de Calidad Académica y Proyectos:**
+       - Resoluciones o certificaciones de liderazgo en registros calificados, autoevaluación o acreditación (especialmente del área artística si aplica).
+       - Certificados de ejecución o gestión presupuestal y de proyectos.
+    6. **🤝 Evidencias de Relacionamiento y Territorio:**
+       - Actas, convenios o certificados de representación institucional, redes de Educación Superior, pares académicos o proyectos de extensión e internacionalización.
+
+    > **⚠️ Recordatorio importante:** Toda afirmación que esté únicamente en el CV y no cuente con su respectivo certificado o soporte PDF adjunto, **no generará puntuación**.
+    """)
+
+uploaded_files = st.file_uploader("Sube los documentos PDF del candidato (puedes seleccionar varios archivos a la vez):", type=["pdf"], accept_multiple_files=True)
 extra_text = st.text_area("Texto adicional o transcriptorio (Opcional):", height=100)
 
 if st.button("🚀 Iniciar Verificación Documental", type="primary"):
@@ -147,10 +167,11 @@ if st.button("🚀 Iniciar Verificación Documental", type="primary"):
                 doc_content += f"\n\n--- TEXTO ADICIONAL ---\n{extra_text.strip()}\n"
             try:
                 genai.configure(api_key=api_key)
+                # Temperatura fija en 0.0 para objetividad estricta
                 model = genai.GenerativeModel(
                     model_name=selected_model,
                     system_instruction=SYSTEM_PROMPT,
-                    generation_config={"temperature": temperature}
+                    generation_config={"temperature": 0.0}
                 )
                 response = model.generate_content(f"Evalúa objetivamente el siguiente expediente:\n\n{doc_content}")
                 st.markdown(response.text)
